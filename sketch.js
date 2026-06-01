@@ -15,11 +15,13 @@ function setup() {
   for (let i = 0; i < data.length; i++) {
     tweets[i] = new tweet(
       random(width - 120),
-      random(height - 120),
+      //   random(height - 120),
+      random(200, 400),
       data[i].tweet_text,
       data[i].classification.hostility_level,
       data[i].view_count,
       data[i].source_url,
+      data[i].tweet_created_at,
     );
   }
 }
@@ -42,8 +44,9 @@ function draw() {
       tweets[i].display();
     }
 
+    let hoverDisplayIndex = 0;
     for (let i = start; i < data.length; i++) {
-      tweets[i].interact();
+      hoverDisplayIndex = tweets[i].interact(hoverDisplayIndex);
     }
   }
 
@@ -51,20 +54,30 @@ function draw() {
 }
 
 class tweet {
-  constructor(x, y, text, classification, engagement, link) {
-    this.x = x + 40;
-    this.y = y + 40;
+  constructor(x, y, text, classification, engagement, link, time) {
+    this.time = time.substring(11, 20);
+    this.hours = this.time.substring(0, 2);
+    this.minutes = this.time.substring(3, 5);
+    this.seconds = this.time.substring(6, 8);
+    this.timeValue =
+      Number(this.hours) * 3600 +
+      Number(this.minutes) * 60 +
+      Number(this.seconds);
+
+    this.x = map(this.timeValue, 0, 86400, 0, width - 120);
+    // this.x = x + 40;
+    this.y = y;
     this.text = text;
     this.class = classification;
     this.link = link;
 
     const engagementValue = Number(engagement);
-    this.engagement = round(map(engagementValue, 0, 2000, 0, 70));
+    this.engagement = round(map(engagementValue, 0, 2000, 0, 50));
     if (isNaN(this.engagement)) {
       this.engagement = 0;
     }
-    if (this.engagement > 70) {
-      this.engagement = 70;
+    if (this.engagement > 50) {
+      this.engagement = 50;
     }
 
     this.hoveredOver = false;
@@ -77,7 +90,9 @@ class tweet {
         lineCountLoop++;
       }
       this.lineCount = lineCountLoop;
-      this.textBoxHeight = (textWidth(this.text) / 300 + this.lineCount) * 60;
+      this.textBoxHeight =
+        (textWidth(this.text) / 300 + this.lineCount) * 60 + 220;
+      // this.gap = (textWidth(this.text) / (width - 300) + this.lineCount) * 60 + 220;
     }
   }
 
@@ -111,28 +126,63 @@ class tweet {
     }
   }
 
-  interact() {
-    if ( this.textBoxHeight > 600) {
-        infoWidth = 600;
-        this.textBoxHeight = (textWidth(this.text) / 600 + this.lineCount) * 60;
-    }else{
-infoWidth = 300;    
-  }
+  // -------------------------------------------------------------------------------------------------
+  //
+  // interact function with normal text boxes that pop up on hover with a white background and black text,
+  // with the text box size adjusting based on the length of the text. If the text box height exceeds 600 pixels,
+  // the width is set to 600 pixels and the height is adjusted accordingly. If the text box height is less than or equal to 600 pixels,
+  //  the width is set to 300 pixels. The text box is positioned near the tweet that is being hovered over.
+  //
+  // -------------------------------------------------------------------------------------------------
+
+  //   interact() {
+  //     if (this.textBoxHeight > 600) {
+  //       infoWidth = 600;
+  //       this.textBoxHeight = (textWidth(this.text) / 600 + this.lineCount) * 60;
+  //     } else {
+  //       infoWidth = 300;
+  //     }
+
+  //     if (this.hoveredOver) {
+  //       fill(255, 255, 255, 200);
+  //       rect(
+  //         this.infoX - 20,
+  //         this.infoY - 20,
+  //         infoWidth + 40,
+  //         this.textBoxHeight,
+  //       );
+  //       fill(0);
+  //       text(this.text, this.infoX, this.infoY, infoWidth);
+  //       console.log(this.text);
+  //       console.log(this.time);
+  //       console.log(this.hours, this.minutes, this.seconds);
+  //       console.log(this.timeValue);
+  //     }
+  //   }
+
+  // -------------------------------------------------------------------------------------------------
+  //
+  // interact funciton to display tweet text based off of the chronologically displayed order.
+  //
+  // -------------------------------------------------------------------------------------------------
+
+  interact(displayIndex) {
+    infoWidth = width - 400;
 
     if (this.hoveredOver) {
-      fill(255, 255, 255, 200);
-      rect(this.infoX - 20, this.infoY - 20, infoWidth + 40, this.textBoxHeight + 200);
-      fill(0);
-      text(this.text, this.infoX, this.infoY, infoWidth);
+      let yPos = 500;
+      let xPos = 100 + displayIndex * 300;
+      fill(255);
+      text(this.text, xPos, yPos, 250);
       console.log(this.text);
-      console.log("lines: " + this.textBoxHeight);
-      console.log("new lines: " + this.lineCount);
-      console.log("total text box height: " + this.textBoxHeight);
+      displayIndex++;
     }
+    return displayIndex;
   }
 
   link() {
     if (this.hoveredOver) {
+      ``;
       const url = `this.link`;
       window.open(url, "_blank");
     }
