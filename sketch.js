@@ -2,6 +2,7 @@ let tweets = [];
 let start = 0,
   end;
 let hover = false;
+let infoWidth = 300;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -76,7 +77,7 @@ class tweet {
         lineCountLoop++;
       }
       this.lineCount = lineCountLoop;
-      this.textBoxHeight = ((textWidth(this.text) + this.lineCount) / 300) * 60;
+      this.textBoxHeight = (textWidth(this.text) / 300 + this.lineCount) * 60;
     }
   }
 
@@ -111,14 +112,22 @@ class tweet {
   }
 
   interact() {
+    if ( this.textBoxHeight > 600) {
+        infoWidth = 600;
+        this.textBoxHeight = (textWidth(this.text) / 600 + this.lineCount) * 60;
+    }else{
+infoWidth = 300;    
+  }
+
     if (this.hoveredOver) {
       fill(255, 255, 255, 200);
-      rect(this.infoX - 20, this.infoY - 20, 340, this.textBoxHeight + 240);
+      rect(this.infoX - 20, this.infoY - 20, infoWidth + 40, this.textBoxHeight + 200);
       fill(0);
-      text(this.text, this.infoX, this.infoY, 300);
+      text(this.text, this.infoX, this.infoY, infoWidth);
       console.log(this.text);
       console.log("lines: " + this.textBoxHeight);
       console.log("new lines: " + this.lineCount);
+      console.log("total text box height: " + this.textBoxHeight);
     }
   }
 
