@@ -35,13 +35,12 @@ function draw() {
   textAlign(LEFT);
 
   if (data) {
-    console.log(data.length);
-
     for (let i = start; i < data.length; i++) {
       fill(255);
       tweets[i].hostilityCheck();
       tweets[i].hover();
       tweets[i].display();
+      tweets[i].linkOnClick();
     }
 
     let hoverDisplayIndex = 0;
@@ -178,16 +177,16 @@ class tweet {
         fill(255);
       }
       text(this.text, xPos, yPos, 250);
-      console.log(this.text);
       displayIndex++;
     }
     return displayIndex;
   }
 
-  link() {
+  linkOnClick() {
     if (this.hoveredOver) {
       ``;
-      const url = `this.link`;
+      const url =
+        "https://x.com/search?q=" + this.text + "&src=typed_query&f=top";
       window.open(url, "_blank");
     }
   }
