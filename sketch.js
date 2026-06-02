@@ -16,7 +16,7 @@ function setup() {
     tweets[i] = new tweet(
       random(width - 120),
       //   random(height - 120),
-      random(200, 400),
+      random(200, 600),
       data[i].tweet_text,
       data[i].classification.hostility_level,
       data[i].view_count,
@@ -170,9 +170,13 @@ class tweet {
     infoWidth = width - 400;
 
     if (this.hoveredOver) {
-      let yPos = 500;
+      let yPos = 700;
       let xPos = 100 + displayIndex * 300;
-      fill(255);
+      if (this.class > 0) {
+        fill(255, 50, 50);
+      } else {
+        fill(255);
+      }
       text(this.text, xPos, yPos, 250);
       console.log(this.text);
       displayIndex++;
