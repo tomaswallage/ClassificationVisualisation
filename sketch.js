@@ -1,91 +1,77 @@
 let tweets = [];
-let start = 0,
-  end;
 let hover = false;
 let infoWidth = 300;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   frameRate(8);
+  textFont("Arial");
+  textSize(20); // set font BEFORE computing textWidth in constructors
 
-  if (data) {
-    console.log("data loaded successfully");
-  }
-
-  // Track how many tweets have landed in each 10-min gap column
   let gapCounts = new Array(144).fill(0);
-
   for (let i = 0; i < data.length; i++) {
-    tweets[i] = new tweet(
+    tweets[i] = new Tweet(
       data[i].tweet_text,
       data[i].classification.hostility_level,
       data[i].view_count,
       data[i].source_url,
       data[i].tweet_created_at,
-      gapCounts, // pass the shared counter in
+      gapCounts,
     );
   }
 }
 
 function draw() {
   background(0);
-
   textFont("Arial");
   textSize(20);
-  fill(255);
   textAlign(LEFT);
 
-  if (data) {
-    for (let i = start; i < data.length; i++) {
-      fill(255);
-      tweets[i].hostileColourValue();
-      tweets[i].hover();
-      tweets[i].display();
-      tweets[i].linkOnClick();
-    }
+  hover = false;
 
-    let hoverDisplayIndex = 0;
-    for (let i = start; i < data.length; i++) {
-      hoverDisplayIndex = tweets[i].interact(hoverDisplayIndex);
-    }
+  for (let i = 0; i < tweets.length; i++) {
+    tweets[i].update(); // hover check
+    tweets[i].display();
   }
 
-  hover = false;
+  // Interact (tooltip) drawn on top, after all tweets
+  let hoverDisplayIndex = 0;
+  for (let i = 0; i < tweets.length; i++) {
+    hoverDisplayIndex = tweets[i].interact(hoverDisplayIndex);
+  }
 }
 
-// tweet class
-//
-// ---------------------------------------------------------------------------------------------------------------------
+// Open link on click only — not every frame
+function mousePressed() {
+  for (let i = 0; i < tweets.length; i++) {
+    if (tweets[i].hoveredOver) {
+      const url =
+        "https://x.com/search?q=" + tweets[i].text + "&src=typed_query&f=top";
+      window.open(url, "_blank");
+      break; // only open one
+    }
+  }
+}
 
-class tweet {
+class Tweet {
   constructor(text, classification, engagement, link, time, gapCounts) {
     this.time = time.substring(11, 20);
-    this.hours = this.time.substring(0, 2);
-    this.minutes = this.time.substring(3, 5);
-    this.seconds = this.time.substring(6, 8);
-    this.timeValue =
-      Number(this.hours) * 3600 +
-      Number(this.minutes) * 60 +
-      Number(this.seconds);
+    this.hours = Number(this.time.substring(0, 2));
+    this.minutes = Number(this.time.substring(3, 5));
+    this.seconds = Number(this.time.substring(6, 8));
+    this.timeValue = this.hours * 3600 + this.minutes * 60 + this.seconds;
 
-    this.gapIndex = this.getTenMinuteGap();
-    this.x = this.getXFromGap();
+    this.gapIndex = constrain(
+      Math.floor((this.hours * 60 + this.minutes) / 10),
+      0,
+      143,
+    );
+    this.x = map(this.gapIndex, 0, 143, 100, width - 100);
 
     const slotSize = width / 144;
-    const slotInColumn = gapCounts[this.gapIndex];
-    const yy = slotInColumn * slotSize; // stack downward within band
-    //  + map(classification, 0, 3, 0, 1) * (height - 200);
-    this.y = height - 100 - yy;
-    gapCounts[this.gapIndex]++; // increment for next tweet in this gap
+    this.y = height - 100 - gapCounts[this.gapIndex] * slotSize;
+    gapCounts[this.gapIndex]++;
 
-    // this.x = map(this.timeValue, 0, 86400, 0, width);
-    // this.x = this.getXFromGap();
-
-    // this.y = map(classification, 0, 3, 100, height - 100);
-    // this.y = y;
-
-    this.infoX = width / 12;
-    this.infoY = height / 4;
     this.text = text;
     this.class = classification;
     this.link = link;
@@ -93,161 +79,56 @@ class tweet {
     this.colValue = map(this.class, 0, 3, 255, 0);
 
     const engagementValue = Number(engagement);
-    this.engagement = round(map(engagementValue, 0, 2000, 4, 50));
-    if (isNaN(this.engagement)) {
-      this.engagement = 0;
-    }
-    if (this.engagement > 50) {
-      this.engagement = 50;
-    }
+    this.engagement = constrain(
+      round(map(engagementValue, 0, 2000, 4, 50)),
+      0,
+      50,
+    );
+    if (isNaN(this.engagement)) this.engagement = 0;
 
     this.hoveredOver = false;
-    // this.infoX = map(this.x, 0, width, 50, width - 400);
-    // this.infoY = map(this.y, 0, height, 50, height - 400);
+    this.infoX = width / 12;
+    this.infoY = height / 4;
 
-    let lineCountLoop = 0;
-    for (let i = 0; i < this.text.length; i++) {
-      if (this.text[i] === "\n") {
-        lineCountLoop++;
-      }
-      this.lineCount = lineCountLoop;
-      this.textBoxHeight =
-        (textWidth(this.text) / 300 + this.lineCount) * 60 + 220;
-      // this.gap = (textWidth(this.text) / (width - 300) + this.lineCount) * 60 + 220;
-    }
+    this.lineCount = (this.text.match(/\n/g) || []).length;
+    this.textBoxHeight =
+      (textWidth(this.text) / 300 + this.lineCount) * 60 + 220;
   }
 
-  hostileColourValue() {
-    fill(255, this.colValue, this.colValue);
-  }
-
-  getTenMinuteGap() {
-    const totalMinutes = Number(this.hours) * 60 + Number(this.minutes);
-    const gapIndex = Math.floor(totalMinutes / 10);
-    return constrain(gapIndex, 0, 143);
-  }
-
-  getXFromGap() {
-    const gapIndex = this.getTenMinuteGap();
-    return map(gapIndex, 0, 143, 100, width - 100);
-  }
-
-  // Display function to display tweets as rectangles with size based on engagement, with the x position based on the time of the tweet.
-  // The color of the rectangle is based on the hostility classification of the tweet.
-  //
-  display() {
-    noStroke();
-    rect(this.x, this.y, this.size, this.size);
-  }
-
-  // display() {
-  //   noStroke();
-  //   rect(this.x, this.y, 2, 300);
-  // }
-
-  hover() {
-    if (
+  update() {
+    this.hoveredOver =
       mouseX > this.x &&
       mouseX < this.x + this.size &&
       mouseY > this.y &&
-      mouseY < this.y + this.size
-    ) {
-      this.hoveredOver = true;
-      hover = true;
-    } else {
-      this.hoveredOver = false;
-    }
+      mouseY < this.y + this.size;
+    if (this.hoveredOver) hover = true;
   }
 
-  // -------------------------------------------------------------------------------------------------
-  //
-  // interact function with normal text boxes that pop up on hover with a white background and black text,
-  // with the text box size adjusting based on the length of the text. If the text box height exceeds 600 pixels,
-  // the width is set to 600 pixels and the height is adjusted accordingly. If the text box height is less than or equal to 600 pixels,
-  //  the width is set to 300 pixels. The text box is positioned near the tweet that is being hovered over.
-  //
-  // -------------------------------------------------------------------------------------------------
-
-  // interact() {
-  //   if (this.textBoxHeight > 600) {
-  //     infoWidth = 600;
-  //     this.textBoxHeight = (textWidth(this.text) / 600 + this.lineCount) * 60;
-  //   } else {
-  //     infoWidth = 300;
-  //   }
-
-  //   if (this.hoveredOver) {
-  //     fill(255, 255, 255, 200);
-  //     rect(
-  //       this.infoX - 20,
-  //       this.infoY - 20,
-  //       infoWidth + 40,
-  //       this.textBoxHeight,
-  //     );
-  //     fill(0);
-  //     text(this.text, this.infoX, this.infoY, infoWidth);
-  //     console.log(this.text);
-  //     console.log(this.time);
-  //     console.log(this.hours, this.minutes, this.seconds);
-  //     console.log(this.timeValue);
-  //   }
-  // }
-
-  interact() {
-    if (this.textBoxHeight > 600) {
-      infoWidth = 600;
-      this.textBoxHeight = (textWidth(this.text) / 600 + this.lineCount) * 60;
-    } else {
-      infoWidth = 300;
-    }
-
-    if (this.hoveredOver) {
-      this.hostileColourValue();
-      strokeWeight(2);
-      stroke(255, 0, 0);
-
-      rect(this.infoX, this.infoY, infoWidth + 40, this.textBoxHeight);
-      line(
-        200 + infoWidth,
-        300 + this.textBoxHeight,
-        this.x + this.size / 2,
-        this.y + this.size / 2,
-      );
-      fill(0);
-      noStroke();
-      text(this.text, this.infoX + 20, this.infoY + 20, infoWidth);
-    }
+  display() {
+    noStroke();
+    fill(255, this.colValue, this.colValue);
+    rect(this.x, this.y, this.size, this.size);
   }
 
-  // -------------------------------------------------------------------------------------------------
-  //
-  // interact funciton to display tweet text based off of the chronologically displayed order.
-  //
-  // -------------------------------------------------------------------------------------------------
-  //
-  // interact(displayIndex) {
-  //   infoWidth = width - 400;
-  //
-  //   if (this.hoveredOver) {
-  //     let yPos = 700;
-  //     let xPos = 100 + displayIndex * 300;
-  //     if (this.class > 0) {
-  //       fill(255, 50, 50);
-  //     } else {
-  //       fill(255);
-  //     }
-  //     text(this.text, xPos, yPos, 250);
-  //     displayIndex++;
-  //   }
-  //   return displayIndex;
-  // }
+  interact(hoverDisplayIndex) {
+    if (!this.hoveredOver) return hoverDisplayIndex;
 
-  linkOnClick() {
-    if (this.hoveredOver) {
-      ``;
-      const url =
-        "https://x.com/search?q=" + this.text + "&src=typed_query&f=top";
-      window.open(url, "_blank");
-    }
+    let iw = this.textBoxHeight > 600 ? 600 : 300;
+    let th =
+      this.textBoxHeight > 600
+        ? (textWidth(this.text) / 600 + this.lineCount) * 60
+        : this.textBoxHeight;
+
+    fill(255, this.colValue, this.colValue);
+    strokeWeight(2);
+    stroke(255, 0, 0);
+    rect(this.infoX, this.infoY, iw + 40, th);
+    line(200 + iw, 300 + th, this.x + this.size / 2, this.y + this.size / 2);
+
+    fill(0);
+    noStroke();
+    text(this.text, this.infoX + 20, this.infoY + 20, iw);
+
+    return hoverDisplayIndex + 1;
   }
 }
