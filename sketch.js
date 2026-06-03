@@ -38,8 +38,6 @@ function draw() {
   if (data) {
     for (let i = start; i < data.length; i++) {
       fill(255);
-      // tweets[i].getTenMinuteGap();
-      // tweets[i].getXFromGap();
       tweets[i].hostileColourValue();
       tweets[i].hover();
       tweets[i].display();
@@ -85,10 +83,14 @@ class tweet {
 
     // this.y = map(classification, 0, 3, 100, height - 100);
     // this.y = y;
+
+    this.infoX = width / 12;
+    this.infoY = height / 4;
     this.text = text;
     this.class = classification;
     this.link = link;
     this.size = (width - 500) / 144;
+    this.colValue = map(this.class, 0, 3, 255, 0);
 
     const engagementValue = Number(engagement);
     this.engagement = round(map(engagementValue, 0, 2000, 4, 50));
@@ -100,8 +102,8 @@ class tweet {
     }
 
     this.hoveredOver = false;
-    this.infoX = map(this.x, 0, width, 50, width - 400);
-    this.infoY = map(this.y, 0, height, 50, height - 400);
+    // this.infoX = map(this.x, 0, width, 50, width - 400);
+    // this.infoY = map(this.y, 0, height, 50, height - 400);
 
     let lineCountLoop = 0;
     for (let i = 0; i < this.text.length; i++) {
@@ -116,8 +118,7 @@ class tweet {
   }
 
   hostileColourValue() {
-    let colValue = map(this.class, 0, 3, 255, 0);
-    fill(255, colValue, colValue);
+    fill(255, this.colValue, this.colValue);
   }
 
   getTenMinuteGap() {
@@ -205,7 +206,7 @@ class tweet {
       strokeWeight(2);
       stroke(255, 0, 0);
 
-      rect(200, 300, infoWidth + 40, this.textBoxHeight);
+      rect(this.infoX, this.infoY, infoWidth + 40, this.textBoxHeight);
       line(
         200 + infoWidth,
         300 + this.textBoxHeight,
@@ -214,7 +215,7 @@ class tweet {
       );
       fill(0);
       noStroke();
-      text(this.text, 200 + 20, 300 + 20, infoWidth);
+      text(this.text, this.infoX + 20, this.infoY + 20, infoWidth);
     }
   }
 
