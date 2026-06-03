@@ -88,7 +88,7 @@ class tweet {
     this.text = text;
     this.class = classification;
     this.link = link;
-    this.size = (width - 200) / 144;
+    this.size = (width - 500) / 144;
 
     const engagementValue = Number(engagement);
     this.engagement = round(map(engagementValue, 0, 2000, 4, 50));
@@ -135,6 +135,7 @@ class tweet {
   // The color of the rectangle is based on the hostility classification of the tweet.
   //
   display() {
+    noStroke();
     rect(this.x, this.y, this.size, this.size);
   }
 
@@ -202,17 +203,18 @@ class tweet {
     if (this.hoveredOver) {
       this.hostileColourValue();
       strokeWeight(2);
-      stroke(255,0,0);
+      stroke(255, 0, 0);
 
       rect(200, 300, infoWidth + 40, this.textBoxHeight);
-      line(200 + infoWidth, 300 + this.textBoxHeight, this.x + this.size/2, this.y + this.size/2);
+      line(
+        200 + infoWidth,
+        300 + this.textBoxHeight,
+        this.x + this.size / 2,
+        this.y + this.size / 2,
+      );
       fill(0);
       noStroke();
       text(this.text, 200 + 20, 300 + 20, infoWidth);
-      console.log(this.text);
-      console.log(this.time);
-      console.log(this.hours, this.minutes, this.seconds);
-      console.log(this.timeValue);
     }
   }
 
