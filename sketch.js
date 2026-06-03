@@ -10,7 +10,7 @@ async function setup() {
   data = await loadJSON("tweetData.json");
 
   textFont("Arial");
-  textSize(20); // set font BEFORE computing textWidth in constructors
+  textSize(14); // set font BEFORE computing textWidth in constructors
 
   let gapCounts = new Array(144).fill(0);
   for (let i = 0; i < data.length; i++) {
@@ -28,7 +28,7 @@ async function setup() {
 function draw() {
   background(0);
   textFont("Arial");
-  textSize(20);
+  textSize(14);
   textAlign(LEFT);
 
   hover = false;
@@ -96,7 +96,7 @@ class Tweet {
 
     this.lineCount = (this.text.match(/\n/g) || []).length;
     this.textBoxHeight =
-      (textWidth(this.text) / 300 + this.lineCount) * 60 + 220;
+      (textWidth(this.text) / 300 + this.lineCount) * 15 + height / 5;
   }
 
   update() {
