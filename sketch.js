@@ -1,10 +1,14 @@
 let tweets = [];
+let data;
 let hover = false;
 let infoWidth = 300;
 
-function setup() {
+async function setup() {
   createCanvas(windowWidth, windowHeight);
-  frameRate(8);
+  frameRate(10);
+
+  data = await loadJSON("tweetData.json");
+
   textFont("Arial");
   textSize(20); // set font BEFORE computing textWidth in constructors
 
@@ -123,7 +127,12 @@ class Tweet {
     strokeWeight(2);
     stroke(255, 0, 0);
     rect(this.infoX, this.infoY, iw + 40, th);
-    line(200 + iw, 300 + th, this.x + this.size / 2, this.y + this.size / 2);
+    line(
+      this.infoX + iw,
+      this.infoY + th,
+      this.x + this.size / 2,
+      this.y + this.size / 2,
+    );
 
     fill(0);
     noStroke();
