@@ -26,7 +26,7 @@ async function setup() {
 }
 
 function draw() {
-  background(0);
+  background(255);
   textFont("Arial");
   textSize(14);
   textAlign(LEFT);
@@ -80,7 +80,7 @@ class Tweet {
     this.class = classification;
     this.link = link;
     this.size = (width - 500) / 144;
-    this.colValue = map(this.class, 0, 3, 255, 0);
+    this.colValue = map(this.class, 0, 3, 200, 0);
 
     const engagementValue = Number(engagement);
     this.engagement = constrain(
@@ -110,7 +110,7 @@ class Tweet {
 
   display() {
     noStroke();
-    fill(255, this.colValue, this.colValue);
+    fill(this.colValue, this.colValue, 255);
     rect(this.x, this.y, this.size, this.size);
   }
 
